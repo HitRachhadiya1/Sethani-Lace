@@ -1,41 +1,44 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { assets } from "../assets/frontend_assets/assets";
 import { Link, NavLink } from "react-router-dom";
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
+
   return (
-    <div className="flex items-center justify-between py-5 font-medium">
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex items-center justify-between py-5 font-medium"
+    >
       <img className="w-16" src={assets.logo} alt="" />
       <ul className="hidden sm:flex gap-5 text-sm text-gray-700">
         <NavLink
           to="/"
           className="flex flex-col items-center gap-1 hover:text-blue-500"
+          exact
         >
-          <p>Home</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-blue-500 hidden" />
+          <motion.p whileHover={{ scale: 1.1 }}>Home</motion.p>
+          <motion.hr
+            className="w-2/4 border-none h-[1.5px] bg-blue-500 hidden"
+            whileHover={{ width: "100%", opacity: 1 }}
+          />
         </NavLink>
-        <NavLink
-          to="/about"
-          className="flex flex-col items-center gap-1 hover:text-blue-500"
-        >
-          <p>About</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-blue-500 hidden" />
-        </NavLink>
-        <NavLink
-          to="/contact"
-          className="flex flex-col items-center gap-1 hover:text-blue-500"
-        >
-          <p>Contact</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-blue-500 hidden" />
-        </NavLink>
-        <NavLink
-          to="/collection"
-          className="flex flex-col items-center gap-1 hover:text-blue-500"
-        >
-          <p>Collection</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-blue-500 hidden" />
-        </NavLink>
+        {["About", "Contact", "Collection"].map((item, index) => (
+          <NavLink
+            key={index}
+            to={`/${item.toLowerCase()}`}
+            className="flex flex-col items-center gap-1 hover:text-blue-500"
+          >
+            <motion.p whileHover={{ scale: 1.1 }}>{item}</motion.p>
+            <motion.hr
+              className="w-2/4 border-none h-[1.5px] bg-blue-500 hidden"
+              whileHover={{ width: "100%", opacity: 1 }}
+            />
+          </NavLink>
+        ))}
       </ul>
       <div className="flex items-center gap-6">
         <img src={assets.search_icon} className="w-5 cursor-pointer" alt="" />
@@ -46,11 +49,16 @@ const Navbar = () => {
             alt=""
           />
           <div className="group-hover:block hidden absolute dropdown-menu right-0 pt-4">
-            <div className="flex flex-col gap-2 w-36 py-3 px-5 bg-slate-200 text-black rounded">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-2 w-36 py-3 px-5 bg-slate-200 text-black rounded"
+            >
               <p className="cursor-pointer hover:text-blue-500">My Profile</p>
               <p className="cursor-pointer hover:text-blue-500">Orders</p>
               <p className="cursor-pointer hover:text-blue-500">Logout</p>
-            </div>
+            </motion.div>
           </div>
         </div>
         <Link to="/cart" className="relative">
@@ -66,51 +74,51 @@ const Navbar = () => {
           alt=""
         />
       </div>
-      {/* sidebar menu for small screen */}
-      <div
-        className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${
-          visible ? "w-full" : "w-0"
-        }`}
-      >
-        <div className="flex flex-col text-gray-600">
-          <div
-            onClick={() => setVisible(false)}
-            className="flex items-center gap-4 p-3 cursor-pointer"
+
+      {/* Sidebar Menu for Small Screens */}
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-0 right-0 bottom-0 w-3/4 bg-white shadow-lg"
           >
-            <img src={assets.dropdown_icon} className="h-4 rotate-180" alt="" />
-            <p>Back</p>
-          </div>
-          <NavLink
-            to="/"
-            className="py-2 pl-6 border-b"
-            onClick={() => setVisible(false)}
-          >
-            Home
-          </NavLink>
-          <NavLink
-            to="/collection"
-            className="py-2 pl-6 border"
-            onClick={() => setVisible(false)}
-          >
-            Collection
-          </NavLink>
-          <NavLink
-            to="/about"
-            className="py-2 pl-6 border"
-            onClick={() => setVisible(false)}
-          >
-            About
-          </NavLink>
-          <NavLink
-            to="/contact"
-            className="py-2 pl-6 border"
-            onClick={() => setVisible(false)}
-          >
-            Contact
-          </NavLink>
-        </div>
-      </div>
-    </div>
+            <div className="flex flex-col text-gray-600">
+              <div
+                onClick={() => setVisible(false)}
+                className="flex items-center gap-4 p-3 cursor-pointer"
+              >
+                <img
+                  src={assets.dropdown_icon}
+                  className="h-4 rotate-180"
+                  alt=""
+                />
+                <p>Back</p>
+              </div>
+              <NavLink
+                to="/"
+                className="py-2 pl-6 border"
+                onClick={() => setVisible(false)}
+              >
+                Home
+              </NavLink>
+              {["Collection", "About", "Contact"].map((item, index) => (
+                <NavLink
+                  key={index}
+                  to={`/${item.toLowerCase()}`}
+                  className="py-2 pl-6 border"
+                  onClick={() => setVisible(false)}
+                >
+                  {item}
+                </NavLink>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
