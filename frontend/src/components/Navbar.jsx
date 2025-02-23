@@ -75,7 +75,6 @@ const Navbar = () => {
         />
       </div>
 
-      {/* Sidebar Menu for Small Screens */}
       <AnimatePresence>
         {visible && (
           <motion.div
