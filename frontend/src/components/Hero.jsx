@@ -21,7 +21,7 @@ const Hero = () => {
       </div>
       <div className="w-full sm:w-1/2 flex items-center justify-center">
         <img
-          src={products.e_193_09}
+          src={products.e_193_09.image}
           alt=""
           className="w-full h-full object-cover"
         />
