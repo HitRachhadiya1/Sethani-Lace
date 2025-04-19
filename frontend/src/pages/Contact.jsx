@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Title from "../components/Title";
 import { assets } from "../assets/frontend_assets/assets";
+import { Link } from "react-router-dom";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -212,6 +213,15 @@ const Contact = () => {
                 </p>
                 <p className="text-gray-600">Saturday: 10:00 AM - 4:00 PM</p>
                 <p className="text-gray-600">Sunday: Closed</p>
+              </div>
+
+              <div>
+                <Link
+                  to="/admin/login"
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Admin Access
+                </Link>
               </div>
             </div>
           </div>

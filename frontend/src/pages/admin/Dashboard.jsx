@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
+import { useAuth } from "../../context/AuthContext";
 
 const Dashboard = () => {
+  const { adminUser, adminLogout } = useAuth();
+
   // Dummy data for the dashboard
   const stats = {
     totalOrders: 143,
@@ -43,6 +46,10 @@ const Dashboard = () => {
     },
   ];
 
+  const handleLogout = () => {
+    adminLogout();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
@@ -52,8 +59,11 @@ const Dashboard = () => {
           <span className="font-medium">Admin Panel</span>
         </div>
         <div className="flex items-center gap-4">
-          <span>Welcome, Admin</span>
-          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
+          <span>Welcome, {adminUser?.name || "Admin"}</span>
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm"
+          >
             Logout
           </button>
         </div>
@@ -474,7 +484,7 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2M7 7h10"
                   />
                 </svg>
                 <span className="text-sm font-medium text-[#414141]">

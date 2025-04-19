@@ -1,15 +1,18 @@
 import React from "react";
 import Home from "./pages/Home";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import Product from "./pages/Product";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import Collection from "./pages/Collection";
 import PlaceOrder from "./pages/PlaceOrder";
 import Orders from "./pages/Orders";
 import Navbar from "./components/Navbar";
+import { useAuth } from "./context/AuthContext";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -17,6 +20,47 @@ import AdminProducts from "./pages/admin/Products";
 import Inventory from "./pages/admin/Inventory";
 import AddProduct from "./pages/admin/AddProduct";
 import AdminOrders from "./pages/admin/Orders";
+import AdminLogin from "./pages/admin/Login";
+
+// Protected Route Component for Admin
+const ProtectedRoute = ({ children }) => {
+  const { isAdminAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!isAdminAuthenticated()) {
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+// Protected Route Component for regular users
+const UserProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
 
 const App = () => {
   return (
@@ -54,10 +98,10 @@ const App = () => {
         <Route
           path="/cart"
           element={
-            <>
+            <UserProtectedRoute>
               <Navbar />
               <Cart />
-            </>
+            </UserProtectedRoute>
           }
         />
         <Route
@@ -79,6 +123,24 @@ const App = () => {
           }
         />
         <Route
+          path="/register"
+          element={
+            <>
+              <Navbar />
+              <Register />
+            </>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <UserProtectedRoute>
+              <Navbar />
+              <Profile />
+            </UserProtectedRoute>
+          }
+        />
+        <Route
           path="/collection"
           element={
             <>
@@ -90,28 +152,64 @@ const App = () => {
         <Route
           path="/place-order"
           element={
-            <>
+            <UserProtectedRoute>
               <Navbar />
               <PlaceOrder />
-            </>
+            </UserProtectedRoute>
           }
         />
         <Route
           path="/orders"
           element={
-            <>
+            <UserProtectedRoute>
               <Navbar />
               <Orders />
-            </>
+            </UserProtectedRoute>
           }
         />
 
         {/* Admin Routes - No Navbar */}
-        <Route path="/admin/dashboard" element={<Dashboard />} />
-        <Route path="/admin/products" element={<AdminProducts />} />
-        <Route path="/admin/inventory" element={<Inventory />} />
-        <Route path="/admin/products/add" element={<AddProduct />} />
-        <Route path="/admin/orders" element={<AdminOrders />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute>
+              <AdminProducts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <ProtectedRoute>
+              <Inventory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products/add"
+          element={
+            <ProtectedRoute>
+              <AddProduct />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <ProtectedRoute>
+              <AdminOrders />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );
