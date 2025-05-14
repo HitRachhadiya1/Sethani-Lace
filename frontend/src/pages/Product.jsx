@@ -76,10 +76,10 @@ const Product = () => {
   }
 
   return (
-    <div className="my-10">
+    <div className="my-10 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Image */}
-        <div className="border border-gray-200">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           <img
             src={product.image}
             alt={product.name}
@@ -89,13 +89,20 @@ const Product = () => {
 
         {/* Product Details */}
         <div>
-          <h1 className="text-2xl font-medium text-[#414141] mb-2">
+          <div className="mb-2">
+            <Link 
+              to={`/collection?category=${product.category}`}
+              className="text-sm text-gray-500 hover:text-[#414141] transition-colors"
+            >
+              {product.category}
+            </Link>
+          </div>
+          <h1 className="text-2xl font-medium text-[#414141] mb-4">
             {product.name}
           </h1>
-          <p className="text-sm text-gray-500 mb-4">{product.category}</p>
 
           <div className="mb-4">
-            <span className="text-xl font-semibold text-[#414141]">
+            <span className="text-2xl font-semibold text-[#414141]">
               {currency} {product.price}
             </span>
             {product.stock < 10 && (
@@ -121,57 +128,51 @@ const Product = () => {
             </div>
           )}
 
-          {/* Quantity Selector */}
-          <div className="mb-6">
-            <h2 className="text-sm font-medium text-[#414141] mb-2">
-              Quantity
-            </h2>
-            <div className="flex items-center">
-              <button
-                onClick={decreaseQuantity}
-                className="px-3 py-1 border border-gray-300 hover:bg-gray-100"
-                disabled={product.stock < 1}
-              >
-                -
-              </button>
-              <input
-                type="number"
-                value={quantity}
-                onChange={handleQuantityChange}
-                min="1"
-                max={product.stock}
-                className="w-16 text-center py-1 border-t border-b border-gray-300 outline-none"
-                disabled={product.stock < 1}
-              />
-              <button
-                onClick={increaseQuantity}
-                className="px-3 py-1 border border-gray-300 hover:bg-gray-100"
-                disabled={product.stock < 1 || quantity >= product.stock}
-              >
-                +
-              </button>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-32">
+              <label htmlFor="quantity" className="sr-only">
+                Quantity
+              </label>
+              <div className="flex items-center border border-gray-300 rounded">
+                <button
+                  type="button"
+                  className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-[#414141] disabled:text-gray-400"
+                  onClick={decreaseQuantity}
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  min="1"
+                  max={product.stock}
+                  className="w-12 h-10 text-center border-x border-gray-300 focus:outline-none"
+                  value={quantity}
+                  onChange={handleQuantityChange}
+                />
+                <button
+                  type="button"
+                  className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-[#414141] disabled:text-gray-400"
+                  onClick={increaseQuantity}
+                  disabled={quantity >= product.stock}
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
-
-          {/* Add to Cart Button */}
-          <div className="flex gap-4">
             <button
               onClick={handleAddToCart}
               disabled={product.stock < 1}
-              className={`px-8 py-3 text-white ${
+              className={`flex-1 py-3 px-6 text-sm font-medium rounded ${
                 product.stock < 1
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#414141] hover:bg-black transition-colors"
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-[#414141] text-white hover:bg-black transition-colors"
               }`}
             >
               {product.stock < 1 ? "Out of Stock" : "Add to Cart"}
             </button>
-
-            <Link to="/collection">
-              <button className="px-8 py-3 border border-[#414141] text-[#414141] hover:bg-[#414141] hover:text-white transition-colors">
-                Continue Shopping
-              </button>
-            </Link>
           </div>
         </div>
       </div>
@@ -179,33 +180,40 @@ const Product = () => {
       {/* Similar Products Section */}
       {similarProducts.length > 0 && (
         <div className="mt-16">
-          <Title text1={"SIMILAR"} text2={"PRODUCTS"} />
+          <div className="flex items-center justify-between mb-8">
+            <Title text1={"SIMILAR"} text2={"PRODUCTS"} />
+            <Link
+              to={`/collection?category=${product.category}`}
+              className="text-sm text-[#414141] hover:text-black transition-colors"
+            >
+              View All {product.category} Products →
+            </Link>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {similarProducts.map((item) => (
-              <div
+              <Link
                 key={item.id}
+                to={`/product/${item.id}`}
                 className="border border-gray-200 hover:shadow-md transition-shadow"
               >
-                <Link to={`/product/${item.id}`}>
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-medium text-[#414141]">
-                      {item.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">{item.category}</p>
-                    <p className="font-semibold text-[#414141] mt-2">
-                      {currency} {item.price}
-                    </p>
-                  </div>
-                </Link>
-              </div>
+                <div className="aspect-square overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-medium text-[#414141]">
+                    {item.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">{item.category}</p>
+                  <p className="font-semibold text-[#414141] mt-2">
+                    {currency} {item.price}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         </div>

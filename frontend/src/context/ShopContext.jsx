@@ -1,11 +1,40 @@
 import { createContext, useState, useEffect } from "react";
-import { products } from "../assets/frontend_assets/assets";
+import { api } from "../utils/api";
 
 export const ShopContext = createContext();
 
 const ShopContextProvider = ({ children }) => {
   const currency = "₹";
   const deliveryFee = 10;
+
+  // Products state
+  const [products, setProducts] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.getProducts();
+        // Convert array to object with _id as key
+        const productsObj = response.products.reduce((acc, product) => {
+          acc[product._id] = {
+            ...product,
+            id: product._id, // Add id field for compatibility
+            image: product.image[0], // Use first image
+          };
+          return acc;
+        }, {});
+        setProducts(productsObj);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Initialize cart state
   const [cart, setCart] = useState(() => {
@@ -42,6 +71,11 @@ const ShopContextProvider = ({ children }) => {
 
     if (product.stock < 1) {
       alert("Sorry, this product is out of stock.");
+      return;
+    }
+
+    if (!product.availableForSale) {
+      alert("Sorry, this product is not available for sale.");
       return;
     }
 
@@ -122,6 +156,7 @@ const ShopContextProvider = ({ children }) => {
     <ShopContext.Provider
       value={{
         products,
+        loading,
         currency,
         deliveryFee,
         cart,

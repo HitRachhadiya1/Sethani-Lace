@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { ShopContext } from "../../context/ShopContext";
+import { api } from "../../utils/api";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -9,18 +10,20 @@ const AddProduct = () => {
 
   // Get unique categories for dropdown
   const categories = [
+    "Lace",
     ...new Set(Object.values(products).map((item) => item.category)),
-  ];
+  ].filter(Boolean); // Remove any undefined or empty values
 
   const [formData, setFormData] = useState({
     name: "",
-    category: categories[0] || "",
+    category: "Lace", // Set default category to Lace
     price: "",
     stock: "",
     forSale: true,
     description: "",
     image: null,
     previewImage: null,
+    availableForSale: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -80,27 +83,45 @@ const AddProduct = () => {
       formErrors.price = "Valid price is required";
     if (formData.stock === "" || formData.stock < 0)
       formErrors.stock = "Valid stock quantity is required";
-    if (!formData.previewImage) formErrors.image = "Product image is required";
+    if (!formData.image) formErrors.image = "Product image is required";
 
     setErrors(formErrors);
     return Object.keys(formErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
-    // In a real app, you would upload the image and save to a database
-    // This is a simulation
-    setTimeout(() => {
-      console.log("Product added:", formData);
-      setIsSubmitting(false);
+    try {
+      // Create FormData object
+      const productFormData = new FormData();
+      productFormData.append("name", formData.name);
+      productFormData.append("category", formData.category);
+      productFormData.append("price", formData.price);
+      productFormData.append("stock", formData.stock);
+      productFormData.append("description", formData.description);
+      productFormData.append("availableForSale", formData.availableForSale);
+      
+      // Append image files
+      if (formData.image) {
+        productFormData.append("image1", formData.image);
+      }
+
+      // Send to backend
+      await api.createProduct(productFormData);
+      
       // Navigate back to products page after successful submission
       navigate("/admin/products");
-    }, 1500);
+    } catch (error) {
+      console.error("Error adding product:", error);
+      setErrors({ submit: error.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -458,6 +479,24 @@ const AddProduct = () => {
                   </div>
 
                   <div className="mb-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        name="availableForSale"
+                        checked={formData.availableForSale}
+                        onChange={handleChange}
+                        className="rounded border-gray-300 text-[#414141] focus:ring-[#414141]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        Available for Sale
+                      </span>
+                    </label>
+                    <p className="mt-1 text-xs text-gray-500">
+                      When checked, this product will be visible to customers
+                    </p>
+                  </div>
+
+                  <div className="mb-4">
                     <label
                       htmlFor="description"
                       className="block text-sm font-medium text-gray-700 mb-1"
@@ -472,21 +511,6 @@ const AddProduct = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
                     ></textarea>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="forSale"
-                        checked={formData.forSale}
-                        onChange={handleChange}
-                        className="h-4 w-4 text-[#414141] focus:ring-[#414141] border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">
-                        Available for Sale
-                      </span>
-                    </label>
                   </div>
 
                   <div className="flex gap-3">

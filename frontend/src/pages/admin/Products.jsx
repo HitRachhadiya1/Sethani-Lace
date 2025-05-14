@@ -1,28 +1,40 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
-import { ShopContext } from "../../context/ShopContext";
+import { api } from "../../utils/api";
 
 const Products = () => {
-  const { products } = useContext(ShopContext);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
 
-  // Get all products from the context as an array
-  const productArray = Object.entries(products).map(([id, product]) => ({
-    id,
-    ...product,
-  }));
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.getProducts(true); // true for admin view
+        setProducts(response.products);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Get unique categories
   const categories = [
     "all",
-    ...new Set(productArray.map((item) => item.category)),
+    ...new Set(products.map((item) => item.category)),
   ];
 
   // Filter products based on search term and category
-  const filteredProducts = productArray.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -42,6 +54,33 @@ const Products = () => {
     }
     return 0;
   });
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await api.removeProduct(id);
+        setProducts(products.filter(product => product._id !== id));
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -316,11 +355,11 @@ const Products = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {sortedProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
+                  <tr key={product._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-14 w-14 rounded overflow-hidden">
                         <img
-                          src={product.image}
+                          src={product.image[0]}
                           alt={product.name}
                           className="h-full w-full object-cover"
                         />
@@ -332,7 +371,7 @@ const Products = () => {
                           {product.name}
                         </div>
                         <div className="text-xs text-gray-500">
-                          ID: {product.id}
+                          ID: {product._id}
                         </div>
                       </div>
                     </td>
@@ -347,24 +386,27 @@ const Products = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          product.forSale
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          product.availableForSale
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {product.forSale ? "Active" : "Inactive"}
+                        {product.availableForSale ? "Available" : "Hidden"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-2">
                         <Link
-                          to={`/admin/products/edit/${product.id}`}
+                          to={`/admin/products/edit/${product._id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Edit
                         </Link>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button 
+                          onClick={() => handleDelete(product._id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
                           Delete
                         </button>
                       </div>

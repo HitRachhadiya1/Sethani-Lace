@@ -19,6 +19,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import Inventory from "./pages/admin/Inventory";
 import AddProduct from "./pages/admin/AddProduct";
+import EditProduct from "./pages/admin/EditProduct";
 import AdminOrders from "./pages/admin/Orders";
 import AdminLogin from "./pages/admin/Login";
 
@@ -183,6 +184,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <AdminProducts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditProduct />
             </ProtectedRoute>
           }
         />

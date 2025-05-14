@@ -1,6 +1,7 @@
 // API utility functions for making authenticated requests
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const PRODUCT_BASE_URL = '/api/product';
+const USER_BASE_URL = '/api/user';
 
 // Get auth token based on user type (admin or regular user)
 const getAuthToken = (isAdmin = false) => {
@@ -10,11 +11,7 @@ const getAuthToken = (isAdmin = false) => {
 };
 
 // Generic fetch function with authentication
-export const fetchWithAuth = async (
-  endpoint,
-  options = {},
-  isAdmin = false
-) => {
+export const fetchWithAuth = async (endpoint, options = {}, isAdmin = false, baseUrl = PRODUCT_BASE_URL) => {
   const token = getAuthToken(isAdmin);
 
   const defaultHeaders = {
@@ -34,13 +31,27 @@ export const fetchWithAuth = async (
   };
 
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, config);
-    const data = await response.json();
-
-    return data;
+    const response = await fetch(`${baseUrl}${endpoint}`, config);
+    
+    // Check if response is ok
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    // Check if there's content to parse
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'An error occurred');
+      }
+      return data;
+    } else {
+      throw new Error('Response was not JSON');
+    }
   } catch (error) {
     console.error("API Error:", error);
-    return { success: false, message: "Network error" };
+    throw error;
   }
 };
 
@@ -48,64 +59,113 @@ export const fetchWithAuth = async (
 export const api = {
   // Auth operations
   login: (email, password) => {
-    return fetchWithAuth("/api/user/login", {
+    return fetchWithAuth("/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    });
+    }, false, USER_BASE_URL);
   },
 
-  adminLogin: (email, password) => {
-    return fetchWithAuth("/api/user/admin", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
+  adminLogin: async (email, password) => {
+    try {
+      const response = await fetch(`${USER_BASE_URL}/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Login failed');
+      }
+      return data;
+    } catch (error) {
+      console.error("Admin login error:", error);
+      throw error;
+    }
   },
 
   register: (userData) => {
-    return fetchWithAuth("/api/user/register", {
+    return fetchWithAuth("/register", {
       method: "POST",
       body: JSON.stringify(userData),
-    });
+    }, false, USER_BASE_URL);
+  },
+
+  // Product operations
+  getProducts: async (isAdmin = false) => {
+    return fetchWithAuth(`/list?isAdmin=${isAdmin}`, {}, isAdmin);
+  },
+
+  createProduct: async (formData) => {
+    try {
+      const response = await fetch(`${PRODUCT_BASE_URL}/add`, {
+        method: 'POST',
+        body: formData, // Don't set Content-Type, let browser set it with boundary
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to create product');
+      }
+      return data;
+    } catch (error) {
+      console.error("Create product error:", error);
+      throw error;
+    }
+  },
+
+  getSingleProduct: async (productId, isAdmin = false) => {
+    return fetchWithAuth(`/single?isAdmin=${isAdmin}`, {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    }, isAdmin);
+  },
+
+  removeProduct: async (id) => {
+    return fetchWithAuth(`/remove`, {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    }, true);
   },
 
   // Admin operations
-  getProducts: () => {
-    return fetchWithAuth("/api/products", {}, true);
-  },
+  updateProduct: async (id, productData) => {
+    try {
+      const response = await fetch(`${PRODUCT_BASE_URL}/update`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getAuthToken(true)}`
+        },
+        body: JSON.stringify({ id, ...productData }),
+      });
 
-  createProduct: (productData) => {
-    return fetchWithAuth(
-      "/api/products",
-      {
-        method: "POST",
-        body: JSON.stringify(productData),
-      },
-      true
-    );
-  },
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-  updateProduct: (id, productData) => {
-    return fetchWithAuth(
-      `/api/products/${id}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(productData),
-      },
-      true
-    );
-  },
-
-  deleteProduct: (id) => {
-    return fetchWithAuth(
-      `/api/products/${id}`,
-      {
-        method: "DELETE",
-      },
-      true
-    );
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to update product');
+      }
+      return data;
+    } catch (error) {
+      console.error("Update product error:", error);
+      throw error;
+    }
   },
 
   getOrders: () => {
-    return fetchWithAuth("/api/orders", {}, true);
+    return fetchWithAuth("/orders", {}, true);
   },
 };

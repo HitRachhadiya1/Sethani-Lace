@@ -2,8 +2,13 @@ import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 
-const ProductItem = ({ product, currency }) => {
+const ProductItem = ({ product, currency, isAdmin = false }) => {
   const { addToCart } = useContext(ShopContext);
+
+  // Don't render if product is not available for sale and user is not admin
+  if (!isAdmin && !product.availableForSale) {
+    return null;
+  }
 
   const handleAddToCart = (e) => {
     e.preventDefault();
