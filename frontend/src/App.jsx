@@ -13,6 +13,7 @@ import PlaceOrder from "./pages/PlaceOrder";
 import Orders from "./pages/Orders";
 import Navbar from "./components/Navbar";
 import { useAuth } from "./context/AuthContext";
+import { ErrorBoundary } from "react-error-boundary";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -22,6 +23,25 @@ import AddProduct from "./pages/admin/AddProduct";
 import EditProduct from "./pages/admin/EditProduct";
 import AdminOrders from "./pages/admin/Orders";
 import AdminLogin from "./pages/admin/Login";
+import OrderDetail from "./pages/admin/OrderDetail";
+
+// Error fallback component
+const ErrorFallback = ({ error, resetErrorBoundary }) => {
+  return (
+    <div className="p-6 bg-red-50 rounded-lg border border-red-200 m-4">
+      <h2 className="text-xl font-semibold text-red-700 mb-2">
+        Something went wrong:
+      </h2>
+      <p className="text-red-600 mb-4">{error.message}</p>
+      <button
+        onClick={resetErrorBoundary}
+        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Try again
+      </button>
+    </div>
+  );
+};
 
 // Protected Route Component for Admin
 const ProtectedRoute = ({ children }) => {
@@ -175,7 +195,12 @@ const App = () => {
           path="/admin/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <ErrorBoundary
+                FallbackComponent={ErrorFallback}
+                onReset={() => window.location.reload()}
+              >
+                <Dashboard />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         />
@@ -216,6 +241,19 @@ const App = () => {
           element={
             <ProtectedRoute>
               <AdminOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders/:id"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary
+                FallbackComponent={ErrorFallback}
+                onReset={() => window.location.reload()}
+              >
+                <OrderDetail />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         />

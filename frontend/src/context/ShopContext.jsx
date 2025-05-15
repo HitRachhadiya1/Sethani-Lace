@@ -82,7 +82,7 @@ const ShopContextProvider = ({ children }) => {
     setCart((prevCart) => {
       // Check if product is already in cart
       const existingItemIndex = prevCart.findIndex(
-        (item) => item.id === productId
+        (item) => item.id === productId || item._id === productId
       );
 
       if (existingItemIndex !== -1) {
@@ -105,6 +105,7 @@ const ShopContextProvider = ({ children }) => {
           ...prevCart,
           {
             id: productId,
+            _id: productId, // Add _id field to match what the backend expects
             name: product.name,
             price: product.price,
             image: product.image,

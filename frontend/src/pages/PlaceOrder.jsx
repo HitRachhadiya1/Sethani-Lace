@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { assets } from "../assets/frontend_assets/assets";
+import { api } from "../utils/api";
 
 const PlaceOrder = () => {
   const { cart, cartTotal, currency, deliveryFee, clearCart } =
@@ -66,7 +67,7 @@ const PlaceOrder = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -80,12 +81,53 @@ const PlaceOrder = () => {
 
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
-      // Clear cart and redirect to success page
-      clearCart();
-      navigate("/orders", { state: { success: true } });
-    }, 2000);
+    try {
+      // Prepare order items from cart
+      const items = cart.map((item) => ({
+        productId: item._id || item.id, // Use _id if available, otherwise use id
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: Array.isArray(item.image) ? item.image[0] : item.image, // Handle both array and string
+      }));
+
+      // Create shipping address object
+      const shippingAddress = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.postalCode,
+        phoneNumber: formData.phoneNumber,
+      };
+
+      // Create order data
+      const orderData = {
+        items,
+        shippingAddress,
+        paymentMethod: formData.paymentMethod,
+        totalAmount: cartTotal + deliveryFee,
+      };
+
+      console.log("Sending order data:", orderData); // Debug log
+
+      // Send order to backend
+      const response = await api.createOrder(orderData);
+
+      if (response.success) {
+        // Clear cart and redirect to success page
+        clearCart();
+        navigate("/orders", { state: { success: true } });
+      } else {
+        throw new Error(response.message || "Failed to place order");
+      }
+    } catch (error) {
+      console.error("Order placement error:", error);
+      setFormErrors({ submit: error.message });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (cart.length === 0) {

@@ -1,50 +1,112 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { useAuth } from "../../context/AuthContext";
+import { api } from "../../utils/api";
+import { ErrorBoundary } from "react-error-boundary";
+
+// Error fallback component
+const ErrorFallback = ({ error, resetErrorBoundary }) => {
+  return (
+    <div className="p-6 bg-red-50 rounded-lg border border-red-200 m-4">
+      <h2 className="text-xl font-semibold text-red-700 mb-2">
+        Something went wrong:
+      </h2>
+      <p className="text-red-600 mb-4">{error.message}</p>
+      <button
+        onClick={resetErrorBoundary}
+        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Try again
+      </button>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const { adminUser, adminLogout } = useAuth();
+  const navigate = useNavigate();
 
-  // Dummy data for the dashboard
-  const stats = {
-    totalOrders: 143,
-    pendingOrders: 12,
-    totalProducts: 28,
-    totalRevenue: "₹ 285,400",
-    lowStock: 5,
+  // Add this function
+  const handleViewOrder = (orderId) => {
+    navigate(`/admin/orders/${orderId}`);
   };
 
-  const recentOrders = [
-    {
-      id: "ORD-5782",
-      customer: "Anita Sharma",
-      amount: "₹ 4,250",
-      status: "Delivered",
-      date: "15 Apr, 2023",
-    },
-    {
-      id: "ORD-5781",
-      customer: "Rahul Singh",
-      amount: "₹ 2,800",
-      status: "Processing",
-      date: "14 Apr, 2023",
-    },
-    {
-      id: "ORD-5780",
-      customer: "Priya Patel",
-      amount: "₹ 6,700",
-      status: "Shipped",
-      date: "14 Apr, 2023",
-    },
-    {
-      id: "ORD-5779",
-      customer: "Vikram Desai",
-      amount: "₹ 3,200",
-      status: "Delivered",
-      date: "13 Apr, 2023",
-    },
-  ];
+  // Add this inside your Dashboard component
+  const [dashboardStats, setDashboardStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalProducts: 0,
+    totalRevenue: "₹ 0",
+    lowStock: 0,
+  });
+
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch orders
+      const ordersResponse = await api.getAllOrders();
+
+      // Fetch products
+      const productsResponse = await api.getProducts(true);
+
+      if (ordersResponse.success && productsResponse.success) {
+        const orders = ordersResponse.orders;
+        const products = productsResponse.products;
+
+        // Calculate stats
+        const pendingOrders = orders.filter(
+          (order) => order.status === "Processing" || order.status === "Shipped"
+        ).length;
+
+        const totalRevenue = orders
+          .filter((order) => order.status !== "Cancelled")
+          .reduce((sum, order) => sum + order.totalAmount, 0);
+
+        const lowStockProducts = products.filter(
+          (product) => product.stock < 5
+        ).length;
+
+        // Set dashboard stats
+        setDashboardStats({
+          totalOrders: orders.length,
+          pendingOrders,
+          totalProducts: products.length,
+          totalRevenue: `₹ ${totalRevenue.toLocaleString()}`,
+          lowStock: lowStockProducts,
+        });
+
+        // Set recent orders (5 most recent)
+        setRecentOrders(
+          orders
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 4)
+            .map((order) => ({
+              id: order._id.substring(0, 8),
+              customer: order.user?.name || "Customer",
+              amount: `₹ ${order.totalAmount.toLocaleString()}`,
+              status: order.status,
+              date: new Date(order.date).toLocaleDateString(),
+            }))
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setError(error.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     adminLogout();
@@ -124,7 +186,7 @@ const Dashboard = () => {
                     <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
                     <path
                       fillRule="evenodd"
-                      d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                      d="M3 8h14v7a2 2 0 01-2 2h2a3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
                       clipRule="evenodd"
                     />
                   </svg>
@@ -205,7 +267,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-gray-500 text-sm">Total Orders</p>
                   <h3 className="text-2xl font-semibold text-[#414141]">
-                    {stats.totalOrders}
+                    {dashboardStats.totalOrders}
                   </h3>
                 </div>
                 <div className="bg-blue-50 p-2 rounded-full">
@@ -232,7 +294,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-gray-500 text-sm">Pending Orders</p>
                   <h3 className="text-2xl font-semibold text-[#414141]">
-                    {stats.pendingOrders}
+                    {dashboardStats.pendingOrders}
                   </h3>
                 </div>
                 <div className="bg-orange-50 p-2 rounded-full">
@@ -259,7 +321,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-gray-500 text-sm">Total Products</p>
                   <h3 className="text-2xl font-semibold text-[#414141]">
-                    {stats.totalProducts}
+                    {dashboardStats.totalProducts}
                   </h3>
                 </div>
                 <div className="bg-green-50 p-2 rounded-full">
@@ -286,7 +348,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-gray-500 text-sm">Total Revenue</p>
                   <h3 className="text-2xl font-semibold text-[#414141]">
-                    {stats.totalRevenue}
+                    {dashboardStats.totalRevenue}
                   </h3>
                 </div>
                 <div className="bg-purple-50 p-2 rounded-full">
@@ -313,7 +375,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-gray-500 text-sm">Low Stock Items</p>
                   <h3 className="text-2xl font-semibold text-[#414141]">
-                    {stats.lowStock}
+                    {dashboardStats.lowStock}
                   </h3>
                 </div>
                 <div className="bg-red-50 p-2 rounded-full">
@@ -403,12 +465,12 @@ const Dashboard = () => {
                         {order.date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <Link
-                          to={`/admin/orders/${order.id}`}
+                        <button
+                          onClick={() => handleViewOrder(order.id)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           View
-                        </Link>
+                        </button>
                       </td>
                     </tr>
                   ))}
