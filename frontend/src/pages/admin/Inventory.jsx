@@ -1,10 +1,13 @@
 import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { ShopContext } from "../../context/ShopContext";
+import { useAuth } from "../../context/AuthContext";
 
 const Inventory = () => {
   const { products } = useContext(ShopContext);
+  const { adminUser, adminLogout } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStock, setFilterStock] = useState("all");
   const [sortBy, setSortBy] = useState("stock");
@@ -65,27 +68,115 @@ const Inventory = () => {
     inStock: productArray.filter((p) => p.stock > 0).length,
   };
 
+  const handleLogout = () => {
+    adminLogout();
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    
+    // Create print-friendly content
+    const printContent = `
+      <html>
+        <head>
+          <title>Inventory Report - ${new Date().toLocaleDateString()}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f4f4f4; }
+            .header { margin-bottom: 20px; }
+            .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+            .stat-card { padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+            @media print {
+              .no-print { display: none; }
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Inventory Report</h1>
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+          </div>
+
+          <div class="stats">
+            <div class="stat-card">
+              <h3>Total Products</h3>
+              <p>${stockStats.total}</p>
+            </div>
+            <div class="stat-card">
+              <h3>In Stock</h3>
+              <p>${stockStats.inStock}</p>
+            </div>
+            <div class="stat-card">
+              <h3>Low Stock</h3>
+              <p>${stockStats.lowStock}</p>
+            </div>
+            <div class="stat-card">
+              <h3>Out of Stock</h3>
+              <p>${stockStats.outOfStock}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedProducts.map(product => `
+                <tr>
+                  <td>${product.name}</td>
+                  <td>${product.category}</td>
+                  <td>${product.stock}</td>
+                  <td>${product.stock === 0 ? 'Out of Stock' : product.stock < 10 ? 'Low Stock' : 'In Stock'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="no-print" style="margin-top: 20px; text-align: center;">
+            <button onclick="window.print(); window.close();" style="padding: 10px 20px;">
+              Print Report
+            </button>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
-      <div className="bg-[#414141] text-white px-6 py-3 flex justify-between items-center">
+      <div className="bg-[#414141] text-white px-4 sm:px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src={assets.logo} alt="Logo" className="h-8" />
-          <span className="font-medium">Admin Panel</span>
+          <img src={assets.logo} alt="Logo" className="h-6 sm:h-8" />
+          <span className="font-medium text-sm sm:text-base">Admin Panel</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span>Welcome, Admin</span>
-          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="text-sm sm:text-base">Welcome, {adminUser.name}</span>
+          <button
+            onClick={handleLogout}
+            className="px-2 sm:px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs sm:text-sm"
+          >
             Logout
           </button>
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         {/* Sidebar */}
-        <div className="w-64 bg-white h-[calc(100vh-56px)] border-r border-gray-200 fixed">
-          <nav className="py-4">
-            <ul>
+        <div className="w-full sm:w-64 bg-white sm:h-[calc(100vh-56px)] border-b sm:border-r border-gray-200 sm:fixed">
+          <nav className="py-2 sm:py-4">
+            <ul className="flex sm:block overflow-x-auto sm:overflow-visible">
               <li>
                 <Link
                   to="/admin/dashboard"
@@ -205,25 +296,25 @@ const Inventory = () => {
         </div>
 
         {/* Main Content */}
-        <div className="ml-64 flex-1 p-6">
-          <h1 className="text-2xl font-medium text-[#414141] mb-6">
+        <div className="sm:ml-64 flex-1 p-4 sm:p-6">
+          <h1 className="text-xl sm:text-2xl font-medium text-[#414141] mb-4 sm:mb-6">
             Inventory Management
           </h1>
 
           {/* Inventory Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-6">
             <div className="bg-white p-4 rounded shadow border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-sm">Total Products</p>
-                  <h3 className="text-2xl font-semibold text-[#414141]">
+                  <h3 className="text-xl sm:text-2xl font-semibold text-[#414141]">
                     {stockStats.total}
                   </h3>
                 </div>
                 <div className="bg-blue-50 p-2 rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-blue-500"
+                    className="h-5 sm:h-6 w-5 sm:w-6 text-blue-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -242,15 +333,15 @@ const Inventory = () => {
             <div className="bg-white p-4 rounded shadow border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">In Stock</p>
-                  <h3 className="text-2xl font-semibold text-[#414141]">
+                  <p className="text-gray-500 text-xs sm:text-sm">In Stock</p>
+                  <h3 className="text-xl sm:text-2xl font-semibold text-[#414141]">
                     {stockStats.inStock}
                   </h3>
                 </div>
                 <div className="bg-green-50 p-2 rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-green-500"
+                    className="h-5 sm:h-6 w-5 sm:w-6 text-green-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -269,15 +360,15 @@ const Inventory = () => {
             <div className="bg-white p-4 rounded shadow border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Low Stock</p>
-                  <h3 className="text-2xl font-semibold text-[#414141]">
+                  <p className="text-gray-500 text-xs sm:text-sm">Low Stock</p>
+                  <h3 className="text-xl sm:text-2xl font-semibold text-[#414141]">
                     {stockStats.lowStock}
                   </h3>
                 </div>
                 <div className="bg-yellow-50 p-2 rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-yellow-500"
+                    className="h-5 sm:h-6 w-5 sm:w-6 text-yellow-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -296,15 +387,15 @@ const Inventory = () => {
             <div className="bg-white p-4 rounded shadow border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Out of Stock</p>
-                  <h3 className="text-2xl font-semibold text-[#414141]">
+                  <p className="text-gray-500 text-xs sm:text-sm">Out of Stock</p>
+                  <h3 className="text-xl sm:text-2xl font-semibold text-[#414141]">
                     {stockStats.outOfStock}
                   </h3>
                 </div>
                 <div className="bg-red-50 p-2 rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-500"
+                    className="h-5 sm:h-6 w-5 sm:w-6 text-red-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -322,8 +413,8 @@ const Inventory = () => {
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded shadow border border-gray-100 p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded shadow border border-gray-100 p-4 mb-4 sm:mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div>
                 <label
                   htmlFor="search"
@@ -335,7 +426,7 @@ const Inventory = () => {
                   <input
                     type="text"
                     id="search"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
+                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
                     placeholder="Search by product name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -343,7 +434,7 @@ const Inventory = () => {
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-gray-400"
+                      className="h-4 sm:h-5 w-4 sm:w-5 text-gray-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -368,7 +459,7 @@ const Inventory = () => {
                 </label>
                 <select
                   id="stockFilter"
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
+                  className="w-full px-4 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
                   value={filterStock}
                   onChange={(e) => setFilterStock(e.target.value)}
                 >
@@ -388,7 +479,7 @@ const Inventory = () => {
                 </label>
                 <select
                   id="sort"
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
+                  className="w-full px-4 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
@@ -402,117 +493,119 @@ const Inventory = () => {
 
           {/* Inventory Table */}
           <div className="bg-white rounded shadow border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {sortedProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-14 w-14 rounded overflow-hidden mr-3">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {product.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            ID: {product.id}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.category}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {editingStock === product.id ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stock
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {sortedProducts.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <input
-                            type="number"
-                            min="0"
-                            className="w-20 border border-gray-300 px-2 py-1 rounded"
-                            value={stockValue}
-                            onChange={(e) => setStockValue(e.target.value)}
-                          />
-                          <button
-                            onClick={() => handleSaveStock(product.id)}
-                            className="ml-2 text-green-600 hover:text-green-900"
-                          >
-                            Save
-                          </button>
+                          <div className="h-10 sm:h-14 w-10 sm:w-14 rounded overflow-hidden mr-2 sm:mr-3">
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <div className="text-xs sm:text-sm font-medium text-gray-900">
+                              {product.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              ID: {product.id}
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <div
-                          className={`text-sm ${
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                        {product.category}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        {editingStock === product.id ? (
+                          <div className="flex items-center">
+                            <input
+                              type="number"
+                              min="0"
+                              className="w-16 sm:w-20 border border-gray-300 px-2 py-1 rounded text-xs sm:text-sm"
+                              value={stockValue}
+                              onChange={(e) => setStockValue(e.target.value)}
+                            />
+                            <button
+                              onClick={() => handleSaveStock(product.id)}
+                              className="ml-2 text-green-600 hover:text-green-900 text-xs sm:text-sm"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            className={`text-xs sm:text-sm ${
+                              product.stock === 0
+                                ? "text-red-600 font-medium"
+                                : product.stock < 10
+                                ? "text-yellow-600"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {product.stock} units
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             product.stock === 0
-                              ? "text-red-600 font-medium"
+                              ? "bg-red-100 text-red-800"
                               : product.stock < 10
-                              ? "text-yellow-600"
-                              : "text-gray-500"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
                           }`}
                         >
-                          {product.stock} units
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          product.stock === 0
-                            ? "bg-red-100 text-red-800"
+                          {product.stock === 0
+                            ? "Out of Stock"
                             : product.stock < 10
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {product.stock === 0
-                          ? "Out of Stock"
-                          : product.stock < 10
-                          ? "Low Stock"
-                          : "In Stock"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditStock(product)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          Update Stock
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                            ? "Low Stock"
+                            : "In Stock"}
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditStock(product)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            Update Stock
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {sortedProducts.length === 0 && (
-              <div className="text-center py-6">
-                <p className="text-gray-500">
+              <div className="text-center py-4 sm:py-6">
+                <p className="text-xs sm:text-sm text-gray-500">
                   No products found matching your filters.
                 </p>
               </div>
@@ -520,16 +613,16 @@ const Inventory = () => {
           </div>
 
           {/* Bulk Actions */}
-          <div className="mt-6 bg-white rounded shadow border border-gray-100 p-4">
-            <h2 className="text-lg font-medium text-[#414141] mb-4">
+          <div className="mt-4 sm:mt-6 bg-white rounded shadow border border-gray-100 p-4">
+            <h2 className="text-base sm:text-lg font-medium text-[#414141] mb-3 sm:mb-4">
               Bulk Operations
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+              <button className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded text-xs sm:text-sm hover:bg-blue-700 transition-colors">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 sm:h-5 w-4 sm:w-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -544,10 +637,13 @@ const Inventory = () => {
                 Import Inventory
               </button>
 
-              <button className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+              <button 
+                onClick={handlePrint}
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded text-xs sm:text-sm hover:bg-green-700 transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 sm:h-5 w-4 sm:w-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -559,13 +655,13 @@ const Inventory = () => {
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                   />
                 </svg>
-                Export Inventory
+                Export PDF
               </button>
 
-              <button className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
+              <button className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded text-xs sm:text-sm hover:bg-purple-700 transition-colors">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
+                  className="h-4 sm:h-5 w-4 sm:w-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

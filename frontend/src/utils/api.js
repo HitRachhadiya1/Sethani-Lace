@@ -228,4 +228,58 @@ export const api = {
   getOrderById: async (orderId) => {
     return fetchWithAuth(`/order/${orderId}`, {}, true, ORDER_BASE_URL);
   },
+
+  // Create Razorpay order
+  createRazorpayOrder: async (orderData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating Razorpay order:', error);
+      throw error;
+    }
+  },
+
+  // Verify Razorpay payment
+  verifyPayment: async (paymentData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/payment/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(paymentData),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      throw error;
+    }
+  },
+
+  // Update order payment status
+  updatePaymentStatus: async (orderId, paymentDetails) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/payment`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(paymentDetails),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      throw error;
+    }
+  },
 };

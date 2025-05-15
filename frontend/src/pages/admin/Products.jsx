@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { api } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -10,6 +11,8 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
+  const { adminUser, adminLogout } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch products
   useEffect(() => {
@@ -66,43 +69,34 @@ const Products = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading products...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
+  const handleLogout = () => {
+    adminLogout();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
-      <div className="bg-[#414141] text-white px-6 py-3 flex justify-between items-center">
+      <div className="bg-[#414141] text-white px-4 sm:px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src={assets.logo} alt="Logo" className="h-8" />
-          <span className="font-medium">Admin Panel</span>
+          <img src={assets.logo} alt="Logo" className="h-6 sm:h-8" />
+          <span className="font-medium text-sm sm:text-base">Admin Panel</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span>Welcome, Admin</span>
-          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="text-sm sm:text-base">Welcome, {adminUser.name}</span>
+          <button
+            onClick={handleLogout}
+            className="px-2 sm:px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs sm:text-sm"
+          >
             Logout
           </button>
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         {/* Sidebar */}
-        <div className="w-64 bg-white h-[calc(100vh-56px)] border-r border-gray-200 fixed">
-          <nav className="py-4">
-            <ul>
+        <div className="w-full sm:w-64 bg-white sm:h-[calc(100vh-56px)] border-b sm:border-r border-gray-200 sm:fixed">
+          <nav className="py-2 sm:py-4">
+            <ul className="flex sm:block overflow-x-auto sm:overflow-visible">
               <li>
                 <Link
                   to="/admin/dashboard"
@@ -222,205 +216,175 @@ const Products = () => {
         </div>
 
         {/* Main Content */}
-        <div className="ml-64 flex-1 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium text-[#414141]">Products</h1>
+        <div className="sm:ml-64 flex-1 p-4 sm:p-6">
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Products</h1>
+              <p className="text-gray-600">Manage your products</p>
+            </div>
             <Link
               to="/admin/products/add"
-              className="flex items-center gap-2 px-4 py-2 bg-[#414141] text-white rounded hover:bg-black transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              Add New Product
+              Add Product
             </Link>
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded shadow border border-gray-100 p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label
-                  htmlFor="search"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Search Products
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="search"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
-                    placeholder="Search by product name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search products..."
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </div>
 
-              <div>
-                <label
-                  htmlFor="category"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Filter by Category
-                </label>
-                <select
-                  id="category"
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                >
-                  {categories.map((category, index) => (
-                    <option key={index} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              <div>
-                <label
-                  htmlFor="sort"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Sort By
-                </label>
-                <select
-                  id="sort"
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="name">Name</option>
-                  <option value="price">Price</option>
-                  <option value="stock">Stock</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sort By
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="name">Name</option>
+                <option value="price">Price</option>
+                <option value="stock">Stock</option>
+              </select>
             </div>
           </div>
 
           {/* Products Table */}
           <div className="bg-white rounded shadow border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Image
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {sortedProducts.map((product) => (
-                  <tr key={product._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-14 w-14 rounded overflow-hidden">
-                        <img
-                          src={product.image[0]}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {product.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ID: {product._id}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.category}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₹ {product.price}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.stock}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          product.availableForSale
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {product.availableForSale ? "Available" : "Hidden"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          to={`/admin/products/edit/${product._id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          Edit
-                        </Link>
-                        <button 
-                          onClick={() => handleDelete(product._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-solid border-[#414141] border-r-transparent"></div>
+                <p className="mt-2 text-gray-600">Loading products...</p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {sortedProducts.length === 0 && (
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {sortedProducts.map((product) => (
+                    <tr key={product._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-10 h-10 object-cover rounded"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{product.name}</p>
+                            <p className="text-xs text-gray-500">ID: {product._id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">{product.category}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">₹{product.price}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`text-sm ${product.stock < 10 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {product.stock}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            product.availableForSale
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {product.availableForSale ? "Active" : "Hidden"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <div className="flex justify-end gap-2">
+                          <Link
+                            to={`/admin/products/edit/${product._id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(product._id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {!loading && sortedProducts.length === 0 && (
               <div className="text-center py-6">
-                <p className="text-gray-500">
-                  No products found matching your filters.
-                </p>
+                <p className="text-sm text-gray-500">No products found</p>
               </div>
             )}
           </div>

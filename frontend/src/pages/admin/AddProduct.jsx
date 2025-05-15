@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { ShopContext } from "../../context/ShopContext";
 import { api } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 
 const AddProduct = () => {
   const navigate = useNavigate();
   const { products } = useContext(ShopContext);
+  const { adminUser, adminLogout } = useAuth();
 
   // Get unique categories for dropdown
   const categories = [
@@ -124,361 +126,212 @@ const AddProduct = () => {
     }
   };
 
+  const handleLogout = () => {
+    adminLogout();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
-      <div className="bg-[#414141] text-white px-6 py-3 flex justify-between items-center">
+      <div className="bg-[#414141] text-white px-4 sm:px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src={assets.logo} alt="Logo" className="h-8" />
-          <span className="font-medium">Admin Panel</span>
+          <img src={assets.logo} alt="Logo" className="h-6 sm:h-8" />
+          <span className="font-medium text-sm sm:text-base">Admin Panel</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span>Welcome, Admin</span>
-          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="text-sm sm:text-base">Welcome, {adminUser.username}</span>
+          <button className="px-2 sm:px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs sm:text-sm" onClick={handleLogout}>
             Logout
           </button>
         </div>
       </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white h-[calc(100vh-56px)] border-r border-gray-200 fixed">
-          <nav className="py-4">
-            <ul>
-              <li>
-                <Link
-                  to="/admin/dashboard"
-                  className="flex items-center gap-2 px-6 py-3 hover:bg-gray-50 text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+      <div className="flex flex-col sm:flex-row">
+        {/* Sidebar - Similar to Dashboard component */}
+        <div className="w-full sm:w-64 bg-white sm:h-[calc(100vh-56px)] border-b sm:border-r border-gray-200 sm:fixed">
+          <nav className="py-2 sm:py-4">
+            <ul className="flex sm:block overflow-x-auto sm:overflow-visible">
+              {[
+                {
+                  to: "/admin/dashboard",
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                  ),
+                  text: "Dashboard"
+                },
+                {
+                  to: "/admin/products",
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                    </svg>
+                  ),
+                  text: "Products",
+                  active: true
+                },
+                // ... other menu items
+              ].map((item, index) => (
+                <li key={index} className="min-w-[120px] sm:min-w-0">
+                  <Link
+                    to={item.to}
+                    className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 ${
+                      item.active
+                        ? "bg-gray-100 border-b-2 sm:border-b-0 sm:border-l-4 border-[#414141] text-[#414141] font-medium"
+                        : "hover:bg-gray-50 text-gray-700"
+                    }`}
                   >
-                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                  </svg>
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/products"
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-100 border-l-4 border-[#414141] text-[#414141] font-medium"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Products
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/inventory"
-                  className="flex items-center gap-2 px-6 py-3 hover:bg-gray-50 text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Inventory
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/orders"
-                  className="flex items-center gap-2 px-6 py-3 hover:bg-gray-50 text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Orders
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/customers"
-                  className="flex items-center gap-2 px-6 py-3 hover:bg-gray-50 text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                  </svg>
-                  Customers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/settings"
-                  className="flex items-center gap-2 px-6 py-3 hover:bg-gray-50 text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Settings
-                </Link>
-              </li>
+                    {item.icon}
+                    <span className="text-sm whitespace-nowrap">{item.text}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>
 
         {/* Main Content */}
-        <div className="ml-64 flex-1 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium text-[#414141]">
-              Add New Product
-            </h1>
-            <Link
-              to="/admin/products"
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+        <div className="sm:ml-64 flex-1 p-4 sm:p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h1 className="text-xl sm:text-2xl font-medium text-[#414141]">Add New Product</h1>
+              <Link
+                to="/admin/products"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-600 rounded text-xs sm:text-sm hover:bg-gray-200"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Back to Products
-            </Link>
-          </div>
+                Back to Products
+              </Link>
+            </div>
 
-          <div className="bg-white rounded shadow border border-gray-100 p-6">
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column - Image Upload */}
-                <div className="lg:col-span-1">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Product Image
-                    </label>
-                    <div
-                      className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center h-72 cursor-pointer ${
-                        errors.image
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300 hover:border-[#414141]"
-                      }`}
-                      onClick={() =>
-                        document.getElementById("product-image").click()
-                      }
-                    >
+            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-4 sm:p-6">
+                {/* Image Upload Section */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Image
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-full sm:w-1/3 aspect-square bg-gray-100 rounded-lg overflow-hidden">
                       {formData.previewImage ? (
                         <img
                           src={formData.previewImage}
-                          alt="Product Preview"
-                          className="h-full object-contain"
+                          alt="Preview"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-12 w-12 text-gray-400 mb-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <p className="text-sm text-gray-500">
-                            Click to upload product image
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            PNG, JPG or GIF (Max 2MB)
-                          </p>
-                        </>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No image
+                        </div>
                       )}
+                    </div>
+                    <div className="w-full sm:w-2/3">
                       <input
                         type="file"
-                        id="product-image"
                         name="image"
-                        className="hidden"
                         accept="image/*"
                         onChange={handleChange}
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                       />
+                      {errors.image && (
+                        <p className="mt-1 text-xs text-red-500">{errors.image}</p>
+                      )}
                     </div>
-                    {errors.image && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.image}
-                      </p>
-                    )}
                   </div>
                 </div>
 
-                {/* Right Column - Product Details */}
-                <div className="lg:col-span-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Product Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141] ${
-                          errors.name ? "border-red-300" : "border-gray-300"
-                        }`}
-                      />
-                      {errors.name && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.name}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="relative">
-                      <label
-                        htmlFor="category"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Category *
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          id="category"
-                          name="category"
-                          value={formData.category}
-                          onChange={handleChange}
-                          className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141] ${
-                            errors.category
-                              ? "border-red-300"
-                              : "border-gray-300"
-                          }`}
-                        >
-                          <option value="">Select Category</option>
-                          {categories.map((category, index) => (
-                            <option key={index} value={category}>
-                              {category}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="+ New"
-                            onKeyDown={handleNewCategory}
-                            className="w-20 px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
-                          />
-                        </div>
-                      </div>
-                      {errors.category && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.category}
-                        </p>
-                      )}
-                    </div>
+                {/* Product Details */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#414141]"
+                      placeholder="Enter product name"
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label
-                        htmlFor="price"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Price (₹) *
-                      </label>
-                      <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        min="0"
-                        step="0.01"
-                        value={formData.price}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141] ${
-                          errors.price ? "border-red-300" : "border-gray-300"
-                        }`}
-                      />
-                      {errors.price && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.price}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="stock"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Stock Quantity *
-                      </label>
-                      <input
-                        type="number"
-                        id="stock"
-                        name="stock"
-                        min="0"
-                        value={formData.stock}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141] ${
-                          errors.stock ? "border-red-300" : "border-gray-300"
-                        }`}
-                      />
-                      {errors.stock && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.stock}
-                        </p>
-                      )}
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#414141]"
+                    >
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.category && (
+                      <p className="mt-1 text-xs text-red-500">{errors.category}</p>
+                    )}
                   </div>
 
-                  <div className="mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#414141]"
+                      placeholder="Enter price"
+                      min="0"
+                      step="0.01"
+                    />
+                    {errors.price && (
+                      <p className="mt-1 text-xs text-red-500">{errors.price}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stock
+                    </label>
+                    <input
+                      type="number"
+                      name="stock"
+                      value={formData.stock}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#414141]"
+                      placeholder="Enter stock quantity"
+                      min="0"
+                    />
+                    {errors.stock && (
+                      <p className="mt-1 text-xs text-red-500">{errors.stock}</p>
+                    )}
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      rows="4"
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#414141]"
+                      placeholder="Enter product description"
+                    ></textarea>
+                  </div>
+
+                  <div className="sm:col-span-2">
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -487,52 +340,36 @@ const AddProduct = () => {
                         onChange={handleChange}
                         className="rounded border-gray-300 text-[#414141] focus:ring-[#414141]"
                       />
-                      <span className="text-sm font-medium text-gray-700">
-                        Available for Sale
-                      </span>
+                      <span className="text-sm text-gray-700">Available for Sale</span>
                     </label>
-                    <p className="mt-1 text-xs text-gray-500">
-                      When checked, this product will be visible to customers
-                    </p>
-                  </div>
-
-                  <div className="mb-4">
-                    <label
-                      htmlFor="description"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Description
-                    </label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      rows="5"
-                      value={formData.description}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#414141] focus:border-[#414141]"
-                    ></textarea>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className={`px-6 py-2 ${
-                        isSubmitting
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-[#414141] hover:bg-black"
-                      } text-white rounded transition-colors`}
-                    >
-                      {isSubmitting ? "Saving..." : "Save Product"}
-                    </button>
-                    <Link
-                      to="/admin/products"
-                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </Link>
                   </div>
                 </div>
+
+                {errors.submit && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-600">
+                    {errors.submit}
+                  </div>
+                )}
+              </div>
+
+              <div className="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                <Link
+                  to="/admin/products"
+                  className="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-4 py-2 rounded text-sm text-white ${
+                    isSubmitting
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#414141] hover:bg-black"
+                  }`}
+                >
+                  {isSubmitting ? "Adding..." : "Add Product"}
+                </button>
               </div>
             </form>
           </div>
