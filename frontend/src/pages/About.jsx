@@ -39,12 +39,14 @@ const About = () => {
             <p className="w-8 md:w-11 h-[1px] bg-[#414141]"></p>
           </div>
         </div>
-        <div className="order-1 md:order-2 border border-[#414141]">
-          <img
-            src="https://images.unsplash.com/photo-1551446591-142875a901a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
-            alt="Lace Manufacturing"
-            className="w-full h-full object-cover"
-          />
+        <div className="order-1 md:order-2 border border-[#414141] max-w-md mx-auto">
+          <div className="aspect-square h-[300px] sm:h-[400px] overflow-hidden">
+            <img
+              src={assets.heritage_img}
+              alt="Lace Manufacturing"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
       </div>
 

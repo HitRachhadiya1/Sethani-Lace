@@ -1,9 +1,11 @@
-import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 
 const ProductItem = ({ product, currency, isAdmin = false }) => {
-  const { addToCart } = useContext(ShopContext);
+  const { addToCart, cart } = useContext(ShopContext);
+  const navigate = useNavigate();
+  const [isInCart, setIsInCart] = useState(cart.some(item => item.id === product.id));
 
   // Don't render if product is not available for sale and user is not admin
   if (!isAdmin && !product.availableForSale) {
@@ -12,7 +14,12 @@ const ProductItem = ({ product, currency, isAdmin = false }) => {
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    addToCart(product.id, 1);
+    if (isInCart) {
+      navigate('/cart');
+    } else {
+      addToCart(product.id, 1);
+      setIsInCart(true);
+    }
   };
 
   return (
@@ -48,10 +55,12 @@ const ProductItem = ({ product, currency, isAdmin = false }) => {
             className={`w-full py-2 text-xs sm:text-sm text-white rounded ${
               product.stock < 1
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-[#414141] hover:bg-black transition-colors"
-            }`}
+                : isInCart
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-[#414141] hover:bg-black"
+            } transition-colors`}
           >
-            {product.stock < 1 ? "Out of Stock" : "Add to Cart"}
+            {product.stock < 1 ? "Out of Stock" : isInCart ? "Go to Cart" : "Add to Cart"}
           </button>
         </div>
       </div>
