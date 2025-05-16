@@ -15,7 +15,18 @@ connectCloudinary();
 
 //middlewares
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // Local development frontend
+      "https://sethani-lace-frontend.onrender.com", // Replace with your actual frontend domain
+      // Add any other domains that need access to your API
+    ],
+    credentials: true, // If you're using cookies or authentication
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 //api endpoints
 app.use("/api/user", userRouter);
