@@ -1,9 +1,10 @@
 import {v2 as cloudinary} from "cloudinary"
 import productModel from "../models/productModel.js"
+import mongoose from "mongoose"
 
 const addProduct = async (req, res) => {
     try {
-        const {name, description, price, category, stock, availableForSale} = req.body
+        const {name, description, price, category, stock, availableForSale, customFields} = req.body
 
         const image1 = req.files.image1 && req.files.image1[0]
         const image2 = req.files.image2 && req.files.image2[0]
@@ -27,7 +28,8 @@ const addProduct = async (req, res) => {
             stock: Number(stock),
             availableForSale: availableForSale === "true" ? true : false,
             image: imagesUrl,
-            date: Date.now()
+            date: Date.now(),
+            customFields: customFields ? JSON.parse(customFields) : []
         }
         console.log(productData);
 
@@ -93,30 +95,38 @@ const singleProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     try {
-        const { id, name, description, price, category, stock, availableForSale } = req.body;
+        const { id, ...updateData } = req.body;
+
+        // Validate that id is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid product ID format" });
+        }
 
         const product = await productModel.findById(id);
         if (!product) {
-            return res.json({ success: false, message: "Product not found" });
+            return res.status(404).json({ success: false, message: "Product not found" });
         }
+
+        // Only update the fields that are provided
+        const updates = {};
+        if (updateData.name) updates.name = updateData.name;
+        if (updateData.description) updates.description = updateData.description;
+        if (updateData.category) updates.category = updateData.category;
+        if (updateData.price !== undefined) updates.price = Number(updateData.price);
+        if (updateData.stock !== undefined) updates.stock = Number(updateData.stock);
+        if (updateData.availableForSale !== undefined) updates.availableForSale = updateData.availableForSale;
+        if (updateData.customFields) updates.customFields = Array.isArray(updateData.customFields) ? updateData.customFields : [];
 
         const updatedProduct = await productModel.findByIdAndUpdate(
             id,
-            {
-                name,
-                description,
-                category,
-                price: Number(price),
-                stock: Number(stock),
-                availableForSale,
-            },
-            { new: true }
+            { $set: updates },
+            { new: true, runValidators: false }  // Disable validation since we're doing partial update
         );
 
         res.json({ success: true, message: "Product updated", product: updatedProduct });
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

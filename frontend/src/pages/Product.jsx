@@ -121,6 +121,23 @@ const Product = () => {
             </div>
           )}
 
+          {/* Custom Fields Section */}
+          {product.customFields && product.customFields.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-sm font-medium text-[#414141] mb-2">
+                Additional Details
+              </h2>
+              <div className="space-y-2">
+                {product.customFields.map((field, index) => (
+                  <div key={index} className="flex">
+                    <span className="text-sm font-medium text-gray-700 w-1/3">{field.fieldName}:</span>
+                    <span className="text-sm text-gray-600">{field.fieldValue}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {product.size && (
             <div className="mb-6">
               <h2 className="text-sm font-medium text-[#414141] mb-2">Size</h2>

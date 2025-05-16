@@ -18,11 +18,15 @@ const ShopContextProvider = ({ children }) => {
         const response = await api.getProducts();
         // Convert array to object with _id as key
         const productsObj = response.products.reduce((acc, product) => {
-          acc[product._id] = {
-            ...product,
-            id: product._id, // Add id field for compatibility
-            image: product.image[0], // Use first image
-          };
+          // Only include products that are available for sale for non-admin users
+          if (product.availableForSale) {
+            acc[product._id] = {
+              ...product,
+              id: product._id, // Add id field for compatibility
+              image: product.image[0], // Use first image
+              forSale: true, // Add forSale field for compatibility
+            };
+          }
           return acc;
         }, {});
         setProducts(productsObj);

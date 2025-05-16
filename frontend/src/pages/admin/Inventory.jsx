@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { ShopContext } from "../../context/ShopContext";
 import { useAuth } from "../../context/AuthContext";
+import { api } from "../../utils/api";
 
 const Inventory = () => {
   const { products } = useContext(ShopContext);
@@ -53,11 +54,40 @@ const Inventory = () => {
     setStockValue(product.stock.toString());
   };
 
-  const handleSaveStock = (productId) => {
-    // In a real app, this would update the backend
-    console.log(`Updated stock for ${productId} to ${stockValue}`);
-    setEditingStock(null);
-    setStockValue("");
+  const handleSaveStock = async (productId) => {
+    try {
+      const newStock = parseInt(stockValue);
+      if (isNaN(newStock) || newStock < 0) {
+        alert("Please enter a valid stock number");
+        return;
+      }
+
+      const response = await api.updateProductStock(productId, newStock);
+      
+      if (response.success) {
+        // Update the local state with the returned product data
+        const updatedProducts = { ...products };
+        updatedProducts[productId] = {
+          ...updatedProducts[productId],
+          ...response.product
+        };
+        
+        // Reset the editing state
+        setEditingStock(null);
+        setStockValue("");
+        
+        // Show success message
+        alert("Stock updated successfully");
+        
+        // Update the ShopContext with new data
+        window.dispatchEvent(new CustomEvent('productUpdated', { 
+          detail: { productId, updatedProduct: response.product }
+        }));
+      }
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      alert(error.message || "Failed to update stock");
+    }
   };
 
   // Stock statistics

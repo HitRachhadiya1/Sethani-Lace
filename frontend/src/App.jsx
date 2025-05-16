@@ -85,176 +85,169 @@ const UserProtectedRoute = ({ children }) => {
 
 const App = () => {
   return (
-    <div className="px-4 sm:px-[5vw] md:px-[7px] lg:px-[9vw]">
-      {/* Non-admin routes include the Navbar */}
+    <div>
       <Routes>
-        {/* Customer Routes */}
+        {/* Admin Routes - No padding */}
         <Route
-          path="/"
+          path="/admin/*"
           element={
-            <>
-              <Navbar />
-              <Home />
-            </>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <>
-              <Navbar />
-              <About />
-            </>
-          }
-        />
-        <Route
-          path="/contact"
-          element={
-            <>
-              <Navbar />
-              <Contact />
-            </>
-          }
-        />
-        <Route
-          path="/cart"
-          element={
-            <UserProtectedRoute>
-              <Navbar />
-              <Cart />
-            </UserProtectedRoute>
-          }
-        />
-        <Route
-          path="/product/:id"
-          element={
-            <>
-              <Navbar />
-              <Product />
-            </>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <>
-              <Navbar />
-              <Login />
-            </>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <>
-              <Navbar />
-              <Register />
-            </>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <UserProtectedRoute>
-              <Navbar />
-              <Profile />
-            </UserProtectedRoute>
-          }
-        />
-        <Route
-          path="/collection"
-          element={
-            <>
-              <Navbar />
-              <Collection />
-            </>
-          }
-        />
-        <Route
-          path="/place-order"
-          element={
-            <UserProtectedRoute>
-              <Navbar />
-              <PlaceOrder />
-            </UserProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <UserProtectedRoute>
-              <Navbar />
-              <Orders />
-            </UserProtectedRoute>
+            <div>
+              <Routes>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/products"
+                  element={
+                    <ProtectedRoute>
+                      <AdminProducts />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/inventory"
+                  element={
+                    <ProtectedRoute>
+                      <Inventory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/products/add"
+                  element={
+                    <ProtectedRoute>
+                      <AddProduct />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/products/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <EditProduct />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <ProtectedRoute>
+                      <AdminOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders/:id"
+                  element={
+                    <ProtectedRoute>
+                      <OrderDetail />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/login" element={<AdminLogin />} />
+              </Routes>
+            </div>
           }
         />
 
-        {/* Admin Routes - No Navbar */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Auth Routes - No navbar */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Customer Routes - With padding and navbar */}
         <Route
-          path="/admin/dashboard"
+          path="/*"
           element={
-            <ProtectedRoute>
-              <ErrorBoundary
-                FallbackComponent={ErrorFallback}
-                onReset={() => window.location.reload()}
-              >
-                <Dashboard />
-              </ErrorBoundary>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products"
-          element={
-            <ProtectedRoute>
-              <AdminProducts />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products/edit/:id"
-          element={
-            <ProtectedRoute>
-              <EditProduct />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/inventory"
-          element={
-            <ProtectedRoute>
-              <Inventory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products/add"
-          element={
-            <ProtectedRoute>
-              <AddProduct />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/orders"
-          element={
-            <ProtectedRoute>
-              <AdminOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/orders/:id"
-          element={
-            <ProtectedRoute>
-              <ErrorBoundary
-                FallbackComponent={ErrorFallback}
-                onReset={() => window.location.reload()}
-              >
-                <OrderDetail />
-              </ErrorBoundary>
-            </ProtectedRoute>
+            <div className="px-4 sm:px-[5vw] md:px-[7px] lg:px-[9vw]">
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <>
+                      <Navbar />
+                      <Home />
+                    </>
+                  }
+                />
+                <Route
+                  path="/about"
+                  element={
+                    <>
+                      <Navbar />
+                      <About />
+                    </>
+                  }
+                />
+                <Route
+                  path="/contact"
+                  element={
+                    <>
+                      <Navbar />
+                      <Contact />
+                    </>
+                  }
+                />
+                <Route
+                  path="/cart"
+                  element={
+                    <UserProtectedRoute>
+                      <Navbar />
+                      <Cart />
+                    </UserProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/product/:id"
+                  element={
+                    <>
+                      <Navbar />
+                      <Product />
+                    </>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <UserProtectedRoute>
+                      <Navbar />
+                      <Profile />
+                    </UserProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/collection"
+                  element={
+                    <>
+                      <Navbar />
+                      <Collection />
+                    </>
+                  }
+                />
+                <Route
+                  path="/place-order"
+                  element={
+                    <UserProtectedRoute>
+                      <Navbar />
+                      <PlaceOrder />
+                    </UserProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <UserProtectedRoute>
+                      <Navbar />
+                      <Orders />
+                    </UserProtectedRoute>
+                  }
+                />
+              </Routes>
+            </div>
           }
         />
       </Routes>

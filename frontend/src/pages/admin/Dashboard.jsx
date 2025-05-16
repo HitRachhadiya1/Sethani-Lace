@@ -92,7 +92,8 @@ const Dashboard = () => {
             .sort((a, b) => new Date(b.date) - new Date(a.date))
             .slice(0, 4)
             .map((order) => ({
-              id: order._id.substring(0, 8),
+              id: order._id,
+              displayId: order._id.substring(0, 8),
               customer: order.user?.name || "Customer",
               amount: `₹ ${order.totalAmount.toLocaleString()}`,
               status: order.status,
@@ -453,7 +454,7 @@ const Dashboard = () => {
                         className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                       >
                         <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                          {order.id}
+                          {order.displayId}
                         </td>
                         <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                           {order.customer}

@@ -163,7 +163,7 @@ export const api = {
   },
 
   // Admin operations
-  updateProduct: async (id, productData) => {
+  updateProduct: async (productData) => {
     try {
       const response = await fetch(`${PRODUCT_BASE_URL}/update`, {
         method: "POST",
@@ -171,7 +171,7 @@ export const api = {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getAuthToken(true)}`,
         },
-        body: JSON.stringify({ id, ...productData }),
+        body: JSON.stringify(productData),
       });
 
       if (!response.ok) {
@@ -185,6 +185,35 @@ export const api = {
       return data;
     } catch (error) {
       console.error("Update product error:", error);
+      throw error;
+    }
+  },
+
+  updateProductStock: async (productId, stock) => {
+    try {
+      const response = await fetch(`${PRODUCT_BASE_URL}/update`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken(true)}`,
+        },
+        body: JSON.stringify({
+          id: productId,
+          stock: Number(stock)
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || "Failed to update stock");
+      }
+      return data;
+    } catch (error) {
+      console.error("Update stock error:", error);
       throw error;
     }
   },
