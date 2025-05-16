@@ -1,15 +1,52 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { api } from "../utils/api";
+import { useAuth } from "./AuthContext";
 
 export const ShopContext = createContext();
 
 const ShopContextProvider = ({ children }) => {
   const currency = "₹";
   const deliveryFee = 10;
+  const { user } = useAuth();
 
   // Products state
   const [products, setProducts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [cartQuantity, setCartQuantity] = useState(0);
+
+  // Load cart from localStorage when user changes
+  useEffect(() => {
+    if (user) {
+      const savedCart = localStorage.getItem(`cart_${user.id}`);
+      if (savedCart) {
+        setCart(JSON.parse(savedCart));
+      } else {
+        setCart([]);
+      }
+    } else {
+      setCart([]);
+    }
+  }, [user]);
+
+  // Update cart in localStorage and recalculate totals when cart changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(`cart_${user.id}`, JSON.stringify(cart));
+    }
+
+    const total = cart.reduce((sum, item) => {
+      return sum + item.price * item.quantity;
+    }, 0);
+
+    const quantity = cart.reduce((sum, item) => {
+      return sum + item.quantity;
+    }, 0);
+
+    setCartTotal(total);
+    setCartQuantity(quantity);
+  }, [cart, user]);
 
   // Fetch products
   useEffect(() => {
@@ -40,35 +77,13 @@ const ShopContextProvider = ({ children }) => {
     fetchProducts();
   }, []);
 
-  // Initialize cart state
-  const [cart, setCart] = useState(() => {
-    // Check if cart exists in localStorage
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
-
-  // Calculated values
-  const [cartTotal, setCartTotal] = useState(0);
-  const [cartQuantity, setCartQuantity] = useState(0);
-
-  // Update localStorage when cart changes and recalculate totals
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-
-    const total = cart.reduce((sum, item) => {
-      return sum + item.price * item.quantity;
-    }, 0);
-
-    const quantity = cart.reduce((sum, item) => {
-      return sum + item.quantity;
-    }, 0);
-
-    setCartTotal(total);
-    setCartQuantity(quantity);
-  }, [cart]);
-
   // Add to cart function
   const addToCart = (productId, quantity = 1) => {
+    if (!user) {
+      alert("Please log in to add items to cart");
+      return;
+    }
+
     const product = products[productId];
 
     if (!product) return;
@@ -109,7 +124,7 @@ const ShopContextProvider = ({ children }) => {
           ...prevCart,
           {
             id: productId,
-            _id: productId, // Add _id field to match what the backend expects
+            _id: productId,
             name: product.name,
             price: product.price,
             image: product.image,
@@ -123,8 +138,9 @@ const ShopContextProvider = ({ children }) => {
 
   // Update cart item quantity
   const updateCartQuantity = (productId, quantity) => {
-    const product = products[productId];
+    if (!user) return;
 
+    const product = products[productId];
     if (!product) return;
 
     if (quantity <= 0) {
@@ -149,12 +165,16 @@ const ShopContextProvider = ({ children }) => {
 
   // Remove from cart function
   const removeFromCart = (productId) => {
+    if (!user) return;
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
   // Clear cart function
   const clearCart = () => {
     setCart([]);
+    if (user) {
+      localStorage.removeItem(`cart_${user.id}`);
+    }
   };
 
   return (
