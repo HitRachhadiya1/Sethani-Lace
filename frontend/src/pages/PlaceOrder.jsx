@@ -1,9 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
+import { useAuth } from "../context/AuthContext";
 import Title from "../components/Title";
 import { assets } from "../assets/frontend_assets/assets";
 import { api } from "../utils/api";
+import { loadRazorpayScript } from "../utils/razorpay";
 
 const PlaceOrder = () => {
   const { cart, cartTotal, currency, deliveryFee, clearCart } =
@@ -67,11 +69,75 @@ const PlaceOrder = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handlePayment = async (orderId) => {
+    try {
+      // Load Razorpay script
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error("Razorpay SDK failed to load");
+      }
+
+      // Create Razorpay order
+      const response = await api.createRazorpayOrder({
+        orderId,
+        amount: cartTotal + deliveryFee,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to create payment order");
+      }
+
+      // Initialize Razorpay
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: response.amount,
+        currency: response.currency,
+        name: "Sethani Lace",
+        description: "Order Payment",
+        order_id: response.orderId,
+        handler: async function (response) {
+          try {
+            // Verify payment
+            const verificationResponse = await api.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verificationResponse.success) {
+              clearCart();
+              navigate("/orders", { state: { success: true } });
+            } else {
+              throw new Error("Payment verification failed");
+            }
+          } catch (error) {
+            console.error("Payment verification error:", error);
+            setFormErrors({ submit: error.message });
+          }
+        },
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phoneNumber,
+        },
+        theme: {
+          color: "#414141",
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
+    } catch (error) {
+      console.error("Payment error:", error);
+      setFormErrors({ submit: error.message });
+      setIsProcessing(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      // Scroll to the first error
       const firstError = document.querySelector(".error-message");
       if (firstError) {
         firstError.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -84,11 +150,11 @@ const PlaceOrder = () => {
     try {
       // Prepare order items from cart
       const items = cart.map((item) => ({
-        productId: item._id || item.id, // Use _id if available, otherwise use id
+        productId: item._id || item.id,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        image: Array.isArray(item.image) ? item.image[0] : item.image, // Handle both array and string
+        image: Array.isArray(item.image) ? item.image[0] : item.image,
       }));
 
       // Create shipping address object
@@ -110,22 +176,22 @@ const PlaceOrder = () => {
         totalAmount: cartTotal + deliveryFee,
       };
 
-      console.log("Sending order data:", orderData); // Debug log
-
       // Send order to backend
       const response = await api.createOrder(orderData);
 
       if (response.success) {
-        // Clear cart and redirect to success page
-        clearCart();
-        navigate("/orders", { state: { success: true } });
+        if (formData.paymentMethod === "razorpay") {
+          await handlePayment(response.orderId);
+        } else if (formData.paymentMethod === "cod") {
+          clearCart();
+          navigate("/orders", { state: { success: true } });
+        }
       } else {
         throw new Error(response.message || "Failed to place order");
       }
     } catch (error) {
       console.error("Order placement error:", error);
       setFormErrors({ submit: error.message });
-    } finally {
       setIsProcessing(false);
     }
   };

@@ -4,11 +4,13 @@ import userModel from "../models/userModel.js";
 // Create a new order
 const createOrder = async (req, res) => {
   try {
+    console.log("Received order request:", req.body);
     const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
     const userId = req.user._id;
 
     // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
+      console.log("Invalid items:", items);
       return res.json({
         success: false,
         message: "Order must contain at least one item",
@@ -18,11 +20,23 @@ const createOrder = async (req, res) => {
     // Validate each item has required fields
     for (const item of items) {
       if (!item.productId) {
+        console.log("Item missing productId:", item);
         return res.json({
           success: false,
           message: "Each item must have a productId",
         });
       }
+    }
+
+    // Validate shipping address
+    if (!shippingAddress || !shippingAddress.firstName || !shippingAddress.lastName || 
+        !shippingAddress.address || !shippingAddress.city || !shippingAddress.state || 
+        !shippingAddress.postalCode || !shippingAddress.phoneNumber) {
+      console.log("Invalid shipping address:", shippingAddress);
+      return res.json({
+        success: false,
+        message: "Invalid shipping address",
+      });
     }
 
     // Create new order
@@ -50,8 +64,9 @@ const createOrder = async (req, res) => {
       orderId: order._id,
     });
   } catch (error) {
-    console.log("Order creation error:", error);
-    res.json({ success: false, message: error.message });
+    console.error("Order creation error:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

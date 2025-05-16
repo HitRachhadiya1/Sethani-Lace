@@ -16,12 +16,7 @@ orderRouter.get("/user", authMiddleware, getUserOrders);
 
 // Admin routes
 orderRouter.get("/all", authMiddleware, adminMiddleware, getAllOrders);
-orderRouter.post(
-  "/update-status",
-  authMiddleware,
-  adminMiddleware,
-  updateOrderStatus
-);
+orderRouter.post("/update-status", authMiddleware, adminMiddleware, updateOrderStatus);
 orderRouter.get("/order/:id", authMiddleware, adminMiddleware, getOrderById);
 
 export default orderRouter;
