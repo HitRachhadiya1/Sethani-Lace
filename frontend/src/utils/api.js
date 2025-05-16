@@ -1,8 +1,12 @@
 // API utility functions for making authenticated requests
 
-const PRODUCT_BASE_URL = "/api/product";
-const USER_BASE_URL = "/api/user";
-const ORDER_BASE_URL = "/api/order";
+const BASE_URL =
+  import.meta.env.VITE_API_URL || "https://sethani-lace.onrender.com/api";
+const USER_BASE_URL = import.meta.env.VITE_USER_API_URL || `${BASE_URL}/user`;
+const PRODUCT_BASE_URL =
+  import.meta.env.VITE_PRODUCT_API_URL || `${BASE_URL}/product`;
+const ORDER_BASE_URL =
+  import.meta.env.VITE_ORDER_API_URL || `${BASE_URL}/order`;
 
 // Get auth token based on user type (admin or regular user)
 const getAuthToken = (isAdmin = false) => {
@@ -199,7 +203,7 @@ export const api = {
         },
         body: JSON.stringify({
           id: productId,
-          stock: Number(stock)
+          stock: Number(stock),
         }),
       });
 
@@ -262,16 +266,16 @@ export const api = {
   createRazorpayOrder: async (orderData) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(orderData),
       });
       return await response.json();
     } catch (error) {
-      console.error('Error creating Razorpay order:', error);
+      console.error("Error creating Razorpay order:", error);
       throw error;
     }
   },
@@ -280,16 +284,16 @@ export const api = {
   verifyPayment: async (paymentData) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/payment/verify`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(paymentData),
       });
       return await response.json();
     } catch (error) {
-      console.error('Error verifying payment:', error);
+      console.error("Error verifying payment:", error);
       throw error;
     }
   },
@@ -297,17 +301,20 @@ export const api = {
   // Update order payment status
   updatePaymentStatus: async (orderId, paymentDetails) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/payment`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify(paymentDetails),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/orders/${orderId}/payment`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify(paymentDetails),
+        }
+      );
       return await response.json();
     } catch (error) {
-      console.error('Error updating payment status:', error);
+      console.error("Error updating payment status:", error);
       throw error;
     }
   },
